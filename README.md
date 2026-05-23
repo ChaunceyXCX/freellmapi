@@ -10,6 +10,8 @@ Aggregate the free tiers from Google, Groq, Cerebras, SambaNova, NVIDIA, Mistral
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
 
+[简体中文](./README_zh.md) | English
+
 ![Fallback chain with per-provider token budget](repo-assets/fallback-chain.png)
 
 </div>
