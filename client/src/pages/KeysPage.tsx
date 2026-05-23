@@ -221,11 +221,11 @@ export default function KeysPage() {
 
         <section>
           <h2 className="text-sm font-medium mb-3">{t('keys.addKeyTitle')}</h2>
-          <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3 rounded-lg border p-4 bg-card">
-            <div className="space-y-1.5">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row sm:items-end gap-3 rounded-lg border p-4 bg-card">
+            <div className="space-y-1.5 w-full sm:w-[220px]">
               <Label className="text-xs">{t('keys.platform')}</Label>
               <Select value={platform} onValueChange={(v) => setPlatform(v as Platform)}>
-                <SelectTrigger className="w-[220px]">
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={t('keys.selectProvider')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -236,36 +236,36 @@ export default function KeysPage() {
               </Select>
             </div>
             {needsAccountId && (
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 w-full sm:w-[200px]">
                 <Label className="text-xs">{t('keys.accountId')}</Label>
                 <Input
                   value={accountId}
                   onChange={e => setAccountId(e.target.value)}
                   placeholder="a1b2c3d4…"
-                  className="w-[200px] font-mono text-xs"
+                  className="w-full font-mono text-xs"
                 />
               </div>
             )}
-            <div className="space-y-1.5 flex-1 min-w-[240px]">
+            <div className="space-y-1.5 w-full sm:flex-1 sm:min-w-[240px]">
               <Label className="text-xs">{needsAccountId ? t('keys.apiToken') : t('keys.apiKey')}</Label>
               <Input
                 type="password"
                 value={apiKey}
                 onChange={e => setApiKey(e.target.value)}
                 placeholder={needsAccountId ? 'Bearer token' : t('keys.pasteKeyPlaceholder')}
-                className="font-mono text-xs"
+                className="w-full font-mono text-xs"
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 w-full sm:w-[160px]">
               <Label className="text-xs">{t('keys.label')}</Label>
               <Input
                 value={label}
                 onChange={e => setLabel(e.target.value)}
                 placeholder={t('common.optional')}
-                className="w-[160px]"
+                className="w-full"
               />
             </div>
-            <Button type="submit" size="sm" disabled={!platform || !apiKey || (needsAccountId && !accountId) || addKey.isPending}>
+            <Button type="submit" size="sm" disabled={!platform || !apiKey || (needsAccountId && !accountId) || addKey.isPending} className="w-full sm:w-auto mt-2 sm:mt-0">
               {addKey.isPending ? t('keys.addingKeyBtn') : t('keys.addKeyBtn')}
             </Button>
           </form>
@@ -300,23 +300,29 @@ export default function KeysPage() {
                       const status = h?.status ?? k.status
                       const lastChecked = h?.lastCheckedAt
                       return (
-                        <div key={k.id} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40 transition-colors">
-                          <span className={`size-1.5 rounded-full flex-shrink-0 ${statusDot[status] ?? statusDot.unknown}`} />
-                          <code className="text-xs font-mono flex-shrink-0">{k.maskedKey}</code>
-                          {k.label && <span className="text-xs text-muted-foreground">{k.label}</span>}
-                          <span className="text-xs text-muted-foreground">{t(statusLabelKey[status] || status)}</span>
-                          <div className="flex-1" />
-                          {lastChecked && (
-                            <span className="text-[11px] text-muted-foreground tabular-nums">
-                              {new Date(lastChecked).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          )}
-                          <Button variant="ghost" size="xs" onClick={() => checkKey.mutate(k.id)} disabled={checkKey.isPending}>
-                            {t('keys.checkBtn')}
-                          </Button>
-                          <Button variant="ghost" size="xs" className="text-muted-foreground hover:text-destructive" onClick={() => deleteKey.mutate(k.id)} disabled={deleteKey.isPending}>
-                            {t('keys.removeBtn')}
-                          </Button>
+                        <div key={k.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 px-4 py-3.5 sm:py-3 hover:bg-muted/40 transition-colors">
+                          <div className="flex items-center gap-2 flex-wrap min-w-0">
+                            <span className={`size-1.5 rounded-full flex-shrink-0 ${statusDot[status] ?? statusDot.unknown}`} />
+                            <code className="text-xs font-mono">{k.maskedKey}</code>
+                            {k.label && <span className="text-xs text-muted-foreground truncate max-w-[120px]">{k.label}</span>}
+                            <span className="text-xs text-muted-foreground">({t(statusLabelKey[status] || status)})</span>
+                          </div>
+                          
+                          <div className="flex items-center justify-between sm:justify-end gap-2 flex-1 w-full sm:w-auto">
+                            {lastChecked && (
+                              <span className="text-[11px] text-muted-foreground tabular-nums">
+                                {new Date(lastChecked).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            )}
+                            <div className="flex items-center gap-1">
+                              <Button variant="ghost" size="xs" onClick={() => checkKey.mutate(k.id)} disabled={checkKey.isPending}>
+                                {t('keys.checkBtn')}
+                              </Button>
+                              <Button variant="ghost" size="xs" className="text-muted-foreground hover:text-destructive" onClick={() => deleteKey.mutate(k.id)} disabled={deleteKey.isPending}>
+                                {t('keys.removeBtn')}
+                              </Button>
+                            </div>
+                          </div>
                         </div>
                       )
                     })}

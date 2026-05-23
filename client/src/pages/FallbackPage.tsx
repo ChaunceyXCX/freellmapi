@@ -184,7 +184,7 @@ function SortableModelRow({
             </span>
           )}
         </div>
-        <div className="flex gap-3 mt-0.5 text-xs text-muted-foreground tabular-nums">
+        <div className="flex flex-wrap gap-x-3 gap-y-1 mt-0.5 text-xs text-muted-foreground tabular-nums">
           <span>{t('fallback.intelRank', { rank: entry.intelligenceRank })}</span>
           <span>{t('fallback.speedRank', { rank: entry.speedRank })}</span>
           {entry.rpmLimit && <span>{entry.rpmLimit} rpm</span>}

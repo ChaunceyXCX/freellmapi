@@ -12,15 +12,33 @@ import { apiFetch } from '@/lib/api'
 
 const queryClient = new QueryClient()
 
-function NavItem({ to, children }: { to: string; children: React.ReactNode }) {
+function NavItem({ to, children, className }: { to: string; children: React.ReactNode; className?: string }) {
   return (
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `relative text-sm px-1 py-4 transition-colors ${
+        `relative text-sm px-1 py-4 transition-colors whitespace-nowrap ${
           isActive
             ? 'text-foreground after:absolute after:inset-x-0 after:-bottom-px after:h-px after:bg-foreground'
             : 'text-muted-foreground hover:text-foreground'
+        } ${className || ''}`
+      }
+    >
+      {children}
+    </NavLink>
+  )
+}
+
+function MobileNavItem({ to, children, onClick }: { to: string; children: React.ReactNode; onClick?: () => void }) {
+  return (
+    <NavLink
+      to={to}
+      onClick={onClick}
+      className={({ isActive }) =>
+        `block text-sm py-2.5 px-3 rounded-md transition-colors ${
+          isActive
+            ? 'bg-muted text-foreground font-medium'
+            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
         }`
       }
     >
@@ -70,7 +88,7 @@ function DarkModeToggle() {
   }
 
   return (
-    <Button variant="ghost" size="sm" onClick={toggle} aria-label="Toggle theme">
+    <Button variant="ghost" size="sm" onClick={toggle} aria-label="Toggle theme" className="size-8 p-0">
       {dark ? (
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
       ) : (
@@ -82,7 +100,7 @@ function DarkModeToggle() {
 
 function Brand() {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-shrink-0">
       <span className="inline-block size-2 rounded-full bg-foreground" />
       <span className="font-semibold tracking-tight text-sm">FreeLLMAPI</span>
     </div>
@@ -92,6 +110,7 @@ function Brand() {
 function AppContent() {
   const { t } = useTranslation()
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('freellmapi_admin_token')
@@ -130,15 +149,15 @@ function AppContent() {
     return (
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b">
-          <div className="max-w-6xl mx-auto px-6 h-12 flex items-center">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
             <Brand />
-            <div className="ml-auto flex items-center gap-3">
+            <div className="flex items-center gap-3">
               <LanguageSwitcher />
               <DarkModeToggle />
             </div>
           </div>
         </header>
-        <main className="max-w-6xl mx-auto px-6 py-8">
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />
         </main>
       </div>
@@ -148,15 +167,18 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b">
-        <div className="max-w-6xl mx-auto px-6 flex items-center">
-          <Brand />
-          <nav className="flex items-center gap-6 ml-10">
-            <NavItem to="/playground">{t('nav.playground')}</NavItem>
-            <NavItem to="/keys">{t('nav.keys')}</NavItem>
-            <NavItem to="/fallback">{t('nav.fallback')}</NavItem>
-            <NavItem to="/analytics">{t('nav.analytics')}</NavItem>
-          </nav>
-          <div className="ml-auto py-2 flex items-center gap-3">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
+          <div className="flex items-center gap-6">
+            <Brand />
+            <nav className="hidden md:flex items-center gap-6">
+              <NavItem to="/playground">{t('nav.playground')}</NavItem>
+              <NavItem to="/keys">{t('nav.keys')}</NavItem>
+              <NavItem to="/fallback">{t('nav.fallback')}</NavItem>
+              <NavItem to="/analytics">{t('nav.analytics')}</NavItem>
+            </nav>
+          </div>
+          
+          <div className="hidden md:flex items-center gap-3">
             <LanguageSwitcher />
             <DarkModeToggle />
             <Button
@@ -168,9 +190,51 @@ function AppContent() {
               {t('nav.logout')}
             </Button>
           </div>
+
+          <div className="flex md:hidden items-center gap-2">
+            <LanguageSwitcher />
+            <DarkModeToggle />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+              className="size-8 p-0"
+            >
+              {mobileMenuOpen ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+              )}
+            </Button>
+          </div>
         </div>
+
+        {mobileMenuOpen && (
+          <div className="md:hidden border-b bg-background px-4 py-4 space-y-3 animate-in slide-in-from-top duration-200">
+            <nav className="flex flex-col gap-1">
+              <MobileNavItem to="/playground" onClick={() => setMobileMenuOpen(false)}>{t('nav.playground')}</MobileNavItem>
+              <MobileNavItem to="/keys" onClick={() => setMobileMenuOpen(false)}>{t('nav.keys')}</MobileNavItem>
+              <MobileNavItem to="/fallback" onClick={() => setMobileMenuOpen(false)}>{t('nav.fallback')}</MobileNavItem>
+              <MobileNavItem to="/analytics" onClick={() => setMobileMenuOpen(false)}>{t('nav.analytics')}</MobileNavItem>
+            </nav>
+            <div className="pt-2 border-t">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setMobileMenuOpen(false)
+                  handleLogout()
+                }}
+                className="text-muted-foreground hover:text-foreground w-full justify-start h-9 px-3"
+              >
+                {t('nav.logout')}
+              </Button>
+            </div>
+          </div>
+        )}
       </header>
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         <Routes>
           <Route path="/" element={<Navigate to="/playground" replace />} />
           <Route path="/playground" element={<PlaygroundPage />} />
