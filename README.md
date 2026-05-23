@@ -71,7 +71,7 @@ The problem is that stacking them by hand is painful: fourteen different SDKs, f
 - **Encrypted key storage** — API keys are encrypted with AES-256-GCM before hitting SQLite; decryption happens in-memory just before a request.
 - **Unified API key** — Clients authenticate to your proxy with a single `freellmapi-…` bearer token. You never expose upstream provider keys to your apps.
 - **Health checks** — Periodic probes mark keys as `healthy`, `rate_limited`, `invalid`, or `error` so the router skips dead ones automatically.
-- **Admin dashboard** — React + Vite UI to manage keys, reorder the fallback chain, inspect analytics, and run prompts in a playground. Dark mode included.
+- **Admin dashboard** — React + Vite UI to manage keys, reorder the fallback chain, inspect analytics, and run prompts in a playground. Supports dark mode, secure admin authentication, and multi-language (i18n) switching (Chinese/English, default Chinese).
 - **Analytics** — Per-request logging with latency, token counts, success rate, and per-provider breakdowns.
 - **Runs anywhere Node 20+ runs** — Windows, macOS, Linux servers, or a small ARM SBC (Raspberry Pi included). ~40 MB RSS at idle behind PM2 / systemd / whatever supervisor you prefer.
 
@@ -108,12 +108,24 @@ npm run dev
 ```
 
 Open http://localhost:5173 (the Vite dev UI), add your provider keys on the **Keys** page, reorder the **Fallback Chain** to taste, and grab your unified API key from the **Keys** page header. That unified key is what you point your OpenAI SDK at.
-
 For a production build:
 
 ```bash
 npm run build
 node server/dist/index.js     # server + dashboard both served on :3001
+```
+
+### Dashboard Authentication & Security
+
+The admin dashboard is protected by a secure username and password authentication layer:
+- **Username**: Defaults to `admin` (can be configured via `ADMIN_USERNAME` in `.env`).
+- **Password**: Set via `ADMIN_PASSWORD` in `.env`. If not defined, it defaults to the system's generated unified API key as a secure fallback.
+
+To customize your admin credentials, add the following to your `.env` file:
+
+```env
+ADMIN_USERNAME=my_admin_user
+ADMIN_PASSWORD=my_secure_password
 ```
 
 ## Using the API
