@@ -14,7 +14,11 @@ Aggregate the free tiers from Google, Groq, Cerebras, SambaNova, NVIDIA, Mistral
 
 > [!NOTE]
 > This repository is a fork of the upstream project [tashfeenahmed/freellmapi](https://github.com/tashfeenahmed/freellmapi).
-> The modifications in this fork are strictly focused on adding **localization (Chinese translation/i18n)** and **admin authentication enhancements (username + password validation)**.
+> We have added the following key features to enhance usability and security:
+> - **Full Localization & Multilanguage (i18n)**: Added translation dictionaries and a UI Language Switcher dropdown. Supports both Chinese (Default) and English.
+> - **Robust Admin Authentication**: Upgraded login verification to require both `Username` and `Password` (configurable via `ADMIN_USERNAME` and `ADMIN_PASSWORD` in `.env`).
+> - **Adaptive Responsive UI**: Refactored the dashboard layout to look stunning and function seamlessly on mobile, tablet, and desktop screens (including a responsive mobile hamburger menu).
+> - **Bilingual Documentation**: Fully localized README guides for English and Chinese.
 
 ![Fallback chain with per-provider token budget](repo-assets/fallback-chain.png)
 
