@@ -11,6 +11,10 @@
 
 简体中文 | [English](./README.md)
 
+> [!NOTE]
+> 本仓库 Fork 自上游项目 [tashfeenahmed/freellmapi](https://github.com/tashfeenahmed/freellmapi)。
+> 本分支主要进行了 **汉化及多语言支持 (i18n)** 以及 **管理员登录验证增强 (支持用户名+密码)**。
+
 ![故障转移链与每提供商 Token 预算](repo-assets/fallback-chain.png)
 
 </div>

@@ -12,6 +12,10 @@ Aggregate the free tiers from Google, Groq, Cerebras, SambaNova, NVIDIA, Mistral
 
 [简体中文](./README_zh.md) | English
 
+> [!NOTE]
+> This repository is a fork of the upstream project [tashfeenahmed/freellmapi](https://github.com/tashfeenahmed/freellmapi).
+> The modifications in this fork are strictly focused on adding **localization (Chinese translation/i18n)** and **admin authentication enhancements (username + password validation)**.
+
 ![Fallback chain with per-provider token budget](repo-assets/fallback-chain.png)
 
 </div>
