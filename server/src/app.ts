@@ -10,6 +10,8 @@ import { fallbackRouter } from './routes/fallback.js';
 import { analyticsRouter } from './routes/analytics.js';
 import { healthRouter } from './routes/health.js';
 import { settingsRouter } from './routes/settings.js';
+import { authRouter } from './routes/auth.js';
+import { requireAdminAuth } from './middleware/auth.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -48,6 +50,16 @@ export function createApp() {
   app.use(express.json({ limit: '1mb' }));
 
   // API routes
+  app.use('/api/auth', authRouter);
+
+  // Health check
+  app.get('/api/ping', (_req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
+  // Protect all subsequent API routes
+  app.use('/api', requireAdminAuth);
+
   app.use('/api/keys', keysRouter);
   app.use('/api/models', modelsRouter);
   app.use('/api/fallback', fallbackRouter);
@@ -57,11 +69,6 @@ export function createApp() {
 
   // OpenAI-compatible proxy
   app.use('/v1', proxyRouter);
-
-  // Health check
-  app.get('/api/ping', (_req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-  });
 
   // Error handler (for API routes)
   app.use(errorHandler);

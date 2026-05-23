@@ -6,6 +6,8 @@ import KeysPage from '@/pages/KeysPage'
 import PlaygroundPage from '@/pages/PlaygroundPage'
 import FallbackPage from '@/pages/FallbackPage'
 import AnalyticsPage from '@/pages/AnalyticsPage'
+import LoginPage from '@/pages/LoginPage'
+import { apiFetch } from '@/lib/api'
 
 const queryClient = new QueryClient()
 
@@ -66,37 +68,103 @@ function Brand() {
   )
 }
 
+function AppContent() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    const token = localStorage.getItem('freellmapi_admin_token')
+    if (!token) {
+      setIsAuthenticated(false)
+      return
+    }
+
+    apiFetch<{ valid: boolean }>('/api/auth/session')
+      .then((res) => {
+        setIsAuthenticated(res.valid)
+        if (!res.valid) {
+          localStorage.removeItem('freellmapi_admin_token')
+        }
+      })
+      .catch(() => {
+        setIsAuthenticated(false)
+        localStorage.removeItem('freellmapi_admin_token')
+      })
+  }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem('freellmapi_admin_token')
+    setIsAuthenticated(false)
+  }
+
+  if (isAuthenticated === null) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-sm text-muted-foreground animate-pulse">Checking session…</p>
+      </div>
+    )
+  }
+
+  if (isAuthenticated === false) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b">
+          <div className="max-w-6xl mx-auto px-6 h-12 flex items-center">
+            <Brand />
+            <div className="ml-auto flex items-center gap-2">
+              <DarkModeToggle />
+            </div>
+          </div>
+        </header>
+        <main className="max-w-6xl mx-auto px-6 py-8">
+          <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />
+        </main>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b">
+        <div className="max-w-6xl mx-auto px-6 flex items-center">
+          <Brand />
+          <nav className="flex items-center gap-6 ml-10">
+            <NavItem to="/playground">Playground</NavItem>
+            <NavItem to="/keys">Keys</NavItem>
+            <NavItem to="/fallback">Fallback</NavItem>
+            <NavItem to="/analytics">Analytics</NavItem>
+          </nav>
+          <div className="ml-auto py-2 flex items-center gap-3">
+            <DarkModeToggle />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="text-muted-foreground hover:text-foreground h-8 px-2"
+            >
+              Logout
+            </Button>
+          </div>
+        </div>
+      </header>
+      <main className="max-w-6xl mx-auto px-6 py-8">
+        <Routes>
+          <Route path="/" element={<Navigate to="/playground" replace />} />
+          <Route path="/playground" element={<PlaygroundPage />} />
+          <Route path="/keys" element={<KeysPage />} />
+          <Route path="/fallback" element={<FallbackPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="*" element={<Navigate to="/playground" replace />} />
+        </Routes>
+      </main>
+    </div>
+  )
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter basename={import.meta.env.BASE_URL}>
-        <div className="min-h-screen bg-background">
-          <header className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b">
-            <div className="max-w-6xl mx-auto px-6 flex items-center">
-              <Brand />
-              <nav className="flex items-center gap-6 ml-10">
-                <NavItem to="/playground">Playground</NavItem>
-                <NavItem to="/keys">Keys</NavItem>
-                <NavItem to="/fallback">Fallback</NavItem>
-                <NavItem to="/analytics">Analytics</NavItem>
-              </nav>
-              <div className="ml-auto py-2">
-                <DarkModeToggle />
-              </div>
-            </div>
-          </header>
-          <main className="max-w-6xl mx-auto px-6 py-8">
-            <Routes>
-              <Route path="/" element={<Navigate to="/playground" replace />} />
-              <Route path="/playground" element={<PlaygroundPage />} />
-              <Route path="/keys" element={<KeysPage />} />
-              <Route path="/fallback" element={<FallbackPage />} />
-              <Route path="/analytics" element={<AnalyticsPage />} />
-              <Route path="/test" element={<Navigate to="/playground" replace />} />
-              <Route path="/health" element={<Navigate to="/keys" replace />} />
-            </Routes>
-          </main>
-        </div>
+        <AppContent />
       </BrowserRouter>
     </QueryClientProvider>
   )
