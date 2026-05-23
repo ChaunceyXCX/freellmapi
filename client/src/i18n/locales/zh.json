@@ -34,7 +34,10 @@
     "activeModelInfo": "当前正在使用 {{model}}。您可以在右上方切换模型。",
     "placeholder": "输入消息… (⏎ 发送，⇧⏎ 换行)",
     "latency": "{{ms}} 毫秒",
-    "fallbackAttempts": "{{count}} 次故障转移"
+    "fallbackAttempts": "{{count}} 次故障转移",
+    "newChat": "新建会话",
+    "history": "历史会话",
+    "deleteChat": "删除会话"
   },
   "keys": {
     "title": "密钥管理",

@@ -34,7 +34,10 @@
     "activeModelInfo": "Using {{model}}. Switch models in the selector above.",
     "placeholder": "Type a message… (⏎ to send, ⇧⏎ for newline)",
     "latency": "{{ms}} ms",
-    "fallbackAttempts": "{{count}} fallback(s)"
+    "fallbackAttempts": "{{count}} fallback(s)",
+    "newChat": "New Chat",
+    "history": "History",
+    "deleteChat": "Delete Chat"
   },
   "keys": {
     "title": "Keys",
