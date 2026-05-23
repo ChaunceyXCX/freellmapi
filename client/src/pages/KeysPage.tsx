@@ -35,6 +35,14 @@ const statusDot: Record<string, string> = {
   unknown: 'bg-muted-foreground/40',
 }
 
+const statusBadge: Record<string, string> = {
+  healthy: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
+  rate_limited: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20',
+  invalid: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20',
+  error: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20',
+  unknown: 'bg-muted text-muted-foreground border-border',
+}
+
 interface HealthPlatform {
   platform: string
   totalKeys: number
@@ -305,7 +313,9 @@ export default function KeysPage() {
                             <span className={`size-1.5 rounded-full flex-shrink-0 ${statusDot[status] ?? statusDot.unknown}`} />
                             <code className="text-xs font-mono">{k.maskedKey}</code>
                             {k.label && <span className="text-xs text-muted-foreground truncate max-w-[120px]">{k.label}</span>}
-                            <span className="text-xs text-muted-foreground">({t(statusLabelKey[status] || status)})</span>
+                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${statusBadge[status] ?? statusBadge.unknown}`}>
+                              {t(statusLabelKey[status] || status)}
+                            </span>
                           </div>
                           
                           <div className="flex items-center justify-between sm:justify-end gap-2 flex-1 w-full sm:w-auto">
