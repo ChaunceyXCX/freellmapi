@@ -118,5 +118,19 @@
     "time": "时间",
     "noData": "暂无相关数据",
     "noErrors": "暂无错误记录"
+  },
+  "gist": {
+    "syncTitle": "GitHub Gist 密钥同步",
+    "syncDesc": "将您的提供商密钥同步到私有 GitHub Gist 中，以便于跨设备备份和恢复。",
+    "patLabel": "GitHub 个人访问令牌 (需包含 gist 权限)",
+    "idLabel": "Gist ID (备份时若为空则自动新建)",
+    "tokenRequired": "请输入 GitHub 个人访问令牌 (PAT)。",
+    "idRequired": "恢复密钥时必须提供 Gist ID。",
+    "backupSuccess": "密钥成功备份到 Gist！ID: {{id}}",
+    "restoreSuccess": "成功从 Gist 恢复了 {{count}} 个密钥！",
+    "backingUp": "备份中…",
+    "backupBtn": "备份至 Gist",
+    "restoring": "恢复中…",
+    "restoreBtn": "从 Gist 恢复"
   }
 }

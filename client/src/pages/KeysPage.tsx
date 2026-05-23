@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { apiFetch } from '@/lib/api'
@@ -127,6 +127,137 @@ function UnifiedKeySection() {
   )
 }
 
+function GistSyncSection() {
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
+  const [token, setToken] = useState(() => localStorage.getItem('freellmapi_gist_token') || '')
+  const [gistId, setGistId] = useState(() => localStorage.getItem('freellmapi_gist_id') || '')
+  const [status, setStatus] = useState<{ type: 'success' | 'error' | ''; message: string }>({ type: '', message: '' })
+  const [loading, setLoading] = useState<'backup' | 'restore' | null>(null)
+
+  useEffect(() => {
+    localStorage.setItem('freellmapi_gist_token', token)
+  }, [token])
+
+  useEffect(() => {
+    localStorage.setItem('freellmapi_gist_id', gistId)
+  }, [gistId])
+
+  const handleSync = async (action: 'backup' | 'restore') => {
+    if (!token.trim()) {
+      setStatus({ type: 'error', message: t('gist.tokenRequired', 'GitHub Personal Access Token (PAT) is required.') })
+      return
+    }
+    if (action === 'restore' && !gistId.trim()) {
+      setStatus({ type: 'error', message: t('gist.idRequired', 'Gist ID is required to restore keys.') })
+      return
+    }
+
+    setStatus({ type: '', message: '' })
+    setLoading(action)
+
+    try {
+      const res: any = await apiFetch('/api/settings/gist/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          githubToken: token.trim(),
+          gistId: gistId.trim() || undefined,
+          action,
+        }),
+      })
+
+      if (action === 'backup') {
+        setGistId(res.gistId)
+        setStatus({
+          type: 'success',
+          message: t('gist.backupSuccess', {
+            defaultValue: 'Successfully backed up keys to Gist! ID: {{id}}',
+            id: res.gistId,
+          }),
+        })
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['keys'] })
+        queryClient.invalidateQueries({ queryKey: ['health'] })
+        queryClient.invalidateQueries({ queryKey: ['fallback'] })
+        setStatus({
+          type: 'success',
+          message: t('gist.restoreSuccess', {
+            defaultValue: 'Successfully restored {{count}} keys from Gist!',
+            count: res.restoredCount,
+          }),
+        })
+      }
+    } catch (e: any) {
+      setStatus({ type: 'error', message: e.message || 'Sync failed.' })
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  return (
+    <section className="rounded-lg border bg-card p-5">
+      <h2 className="text-sm font-medium mb-1">{t('gist.syncTitle', 'GitHub Gist Sync')}</h2>
+      <p className="text-xs text-muted-foreground mb-4">
+        {t('gist.syncDesc', 'Sync your provider keys with a private GitHub Gist for cross-device backup and restore.')}
+      </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label className="text-xs font-medium text-muted-foreground">{t('gist.patLabel', 'GitHub PAT (with "gist" scope)')}</Label>
+          <Input
+            type="password"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            placeholder="ghp_xxxxxxxxxxxx"
+            className="w-full text-xs font-mono bg-background focus:outline-none focus:ring-2 focus:ring-ring/50 h-9"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-medium text-muted-foreground">{t('gist.idLabel', 'Gist ID (creates new if empty on backup)')}</Label>
+          <Input
+            type="text"
+            value={gistId}
+            onChange={(e) => setGistId(e.target.value)}
+            placeholder="Gist ID"
+            className="w-full text-xs font-mono bg-background focus:outline-none focus:ring-2 focus:ring-ring/50 h-9"
+          />
+        </div>
+      </div>
+
+      {status.message && (
+        <div className={`mt-3 p-2.5 rounded text-xs border ${
+          status.type === 'success'
+            ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-400 border-emerald-500/20'
+            : 'bg-rose-500/15 text-rose-800 dark:text-rose-400 border-rose-500/20'
+        }`}>
+          {status.message}
+        </div>
+      )}
+
+      <div className="mt-4 flex gap-2">
+        <Button
+          onClick={() => handleSync('backup')}
+          disabled={loading !== null}
+          size="sm"
+          className="h-9 px-4 text-xs font-medium"
+        >
+          {loading === 'backup' ? t('gist.backingUp', 'Backing up...') : t('gist.backupBtn', 'Backup to Gist')}
+        </Button>
+        <Button
+          onClick={() => handleSync('restore')}
+          disabled={loading !== null}
+          variant="outline"
+          size="sm"
+          className="h-9 px-4 text-xs font-medium"
+        >
+          {loading === 'restore' ? t('gist.restoring', 'Restoring...') : t('gist.restoreBtn', 'Restore from Gist')}
+        </Button>
+      </div>
+    </section>
+  )
+}
+
 export default function KeysPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
@@ -226,6 +357,7 @@ export default function KeysPage() {
 
       <div className="space-y-8">
         <UnifiedKeySection />
+        <GistSyncSection />
 
         <section>
           <h2 className="text-sm font-medium mb-3">{t('keys.addKeyTitle')}</h2>
@@ -249,54 +381,47 @@ export default function KeysPage() {
                 <Input
                   value={accountId}
                   onChange={e => setAccountId(e.target.value)}
-                  placeholder="a1b2c3d4…"
-                  className="w-full font-mono text-xs"
+                  placeholder="e.g. 1a2b3c4d5e"
+                  required
                 />
               </div>
             )}
-            <div className="space-y-1.5 w-full sm:flex-1 sm:min-w-[240px]">
-              <Label className="text-xs">{needsAccountId ? t('keys.apiToken') : t('keys.apiKey')}</Label>
+            <div className="space-y-1.5 flex-1 w-full">
+              <Label className="text-xs">{t('keys.apiKey')}</Label>
               <Input
-                type="password"
                 value={apiKey}
                 onChange={e => setApiKey(e.target.value)}
-                placeholder={needsAccountId ? 'Bearer token' : t('keys.pasteKeyPlaceholder')}
-                className="w-full font-mono text-xs"
+                placeholder={t('keys.pasteKeyPlaceholder')}
+                required
               />
             </div>
-            <div className="space-y-1.5 w-full sm:w-[160px]">
+            <div className="space-y-1.5 w-full sm:w-[180px]">
               <Label className="text-xs">{t('keys.label')}</Label>
               <Input
                 value={label}
                 onChange={e => setLabel(e.target.value)}
                 placeholder={t('common.optional')}
-                className="w-full"
               />
             </div>
-            <Button type="submit" size="sm" disabled={!platform || !apiKey || (needsAccountId && !accountId) || addKey.isPending} className="w-full sm:w-auto mt-2 sm:mt-0">
+            <Button type="submit" disabled={addKey.isPending || !platform || !apiKey} className="w-full sm:w-auto">
               {addKey.isPending ? t('keys.addingKeyBtn') : t('keys.addKeyBtn')}
             </Button>
           </form>
-          {addKey.isError && (
-            <p className="text-destructive text-xs mt-2">{(addKey.error as Error).message}</p>
-          )}
         </section>
 
         <section>
           <h2 className="text-sm font-medium mb-3">{t('keys.configuredTitle')}</h2>
           {isLoading ? (
-            <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+            <div className="text-sm text-muted-foreground py-8 text-center">{t('common.loading')}</div>
           ) : keys.length === 0 ? (
-            <div className="rounded-lg border border-dashed p-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                {t('keys.noKeys')}
-              </p>
+            <div className="text-sm text-muted-foreground py-8 text-center border rounded-lg bg-card border-dashed">
+              {t('keys.noKeys')}
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {grouped.map(group => (
-                <div key={group.value}>
-                  <div className="flex items-baseline justify-between mb-2">
+                <div key={group.value} className="space-y-2">
+                  <div className="flex items-center justify-between pl-1">
                     <h3 className="text-sm font-medium">{group.label}</h3>
                     <span className="text-xs text-muted-foreground tabular-nums">
                       {group.keys.length} {t('keys.keyUnit')}

@@ -118,5 +118,19 @@
     "time": "Time",
     "noData": "No data yet",
     "noErrors": "No errors"
+  },
+  "gist": {
+    "syncTitle": "GitHub Gist Key Sync",
+    "syncDesc": "Synchronize your provider keys with a private GitHub Gist for cross-device backup and restore.",
+    "patLabel": "GitHub Personal Access Token (requires 'gist' scope)",
+    "idLabel": "Gist ID (creates a new one if left empty on backup)",
+    "tokenRequired": "GitHub Personal Access Token (PAT) is required.",
+    "idRequired": "Gist ID is required to restore keys.",
+    "backupSuccess": "Successfully backed up keys to Gist! ID: {{id}}",
+    "restoreSuccess": "Successfully restored {{count}} keys from Gist!",
+    "backingUp": "Backing up…",
+    "backupBtn": "Backup to Gist",
+    "restoring": "Restoring…",
+    "restoreBtn": "Restore from Gist"
   }
 }
