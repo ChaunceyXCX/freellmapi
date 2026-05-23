@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import { z } from 'zod';
-import { getAdminPassword, getExpectedToken } from '../middleware/auth.js';
+import { getAdminUsername, getAdminPassword, getExpectedToken } from '../middleware/auth.js';
 
 export const authRouter = Router();
 
 const loginSchema = z.object({
+  username: z.string().min(1),
   password: z.string().min(1),
 });
 
@@ -16,11 +17,12 @@ authRouter.post('/login', (req: Request, res: Response) => {
     return;
   }
 
-  const { password } = parsed.data;
+  const { username, password } = parsed.data;
+  const adminUsername = getAdminUsername();
   const adminPassword = getAdminPassword();
 
-  if (password !== adminPassword) {
-    res.status(401).json({ error: { message: 'Invalid password', type: 'authentication_error' } });
+  if (username !== adminUsername || password !== adminPassword) {
+    res.status(401).json({ error: { message: 'Invalid username or password', type: 'authentication_error' } });
     return;
   }
 

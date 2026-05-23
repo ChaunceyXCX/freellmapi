@@ -28,13 +28,15 @@ describe('Auth API and Middleware', () => {
 
   beforeAll(() => {
     process.env.ENCRYPTION_KEY = '0'.repeat(64);
+    process.env.ADMIN_USERNAME = 'admin-user';
     process.env.ADMIN_PASSWORD = 'super-secret-password';
     initDb(':memory:');
     app = createApp();
   });
 
-  it('POST /api/auth/login returns token for correct password', async () => {
+  it('POST /api/auth/login returns token for correct credentials', async () => {
     const { status, body } = await request(app, 'POST', '/api/auth/login', {}, {
+      username: 'admin-user',
       password: 'super-secret-password',
     });
     expect(status).toBe(200);
@@ -42,12 +44,13 @@ describe('Auth API and Middleware', () => {
     expect(body.token).toBe(getExpectedToken());
   });
 
-  it('POST /api/auth/login returns 401 for incorrect password', async () => {
+  it('POST /api/auth/login returns 401 for incorrect credentials', async () => {
     const { status, body } = await request(app, 'POST', '/api/auth/login', {}, {
-      password: 'wrong-password',
+      username: 'wrong-user',
+      password: 'super-secret-password',
     });
     expect(status).toBe(401);
-    expect(body.error.message).toBe('Invalid password');
+    expect(body.error.message).toBe('Invalid username or password');
   });
 
   it('GET /api/auth/session returns valid:true for correct token', async () => {

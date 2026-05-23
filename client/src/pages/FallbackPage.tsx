@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation, Trans } from 'react-i18next'
 import {
   DndContext,
   closestCenter,
@@ -73,6 +74,7 @@ const platformColors: Record<string, string> = {
 }
 
 function TokenUsageBar({ data }: { data: TokenUsageData }) {
+  const { t } = useTranslation()
   const { totalBudget, totalUsed, models } = data
   const remaining = Math.max(0, totalBudget - totalUsed)
   const remainingPct = totalBudget > 0 ? Math.round((remaining / totalBudget) * 100) : 0
@@ -89,11 +91,11 @@ function TokenUsageBar({ data }: { data: TokenUsageData }) {
   return (
     <section className="rounded-lg border bg-card p-5">
       <div className="flex items-baseline justify-between mb-3">
-        <h2 className="text-sm font-medium">Monthly token budget</h2>
+        <h2 className="text-sm font-medium">{t('fallback.monthlyBudgetTitle')}</h2>
         <span className="text-xs text-muted-foreground tabular-nums">
-          <span className="text-foreground font-medium">{formatTokens(remaining)}</span> remaining
+          <span className="text-foreground font-medium">{formatTokens(remaining)}</span> {t('fallback.remaining')}
           <span className="mx-1.5">·</span>
-          {remainingPct}% of {formatTokens(totalBudget)}
+          {remainingPct}% {t('fallback.of')} {formatTokens(totalBudget)}
         </span>
       </div>
 
@@ -101,7 +103,7 @@ function TokenUsageBar({ data }: { data: TokenUsageData }) {
         {modelsWithWidth.map((m, i) => (
           <div
             key={i}
-            title={`${m.displayName} (${m.platform}) — ${formatTokens(m.remainingTokens)} remaining`}
+            title={`${m.displayName} (${m.platform}) — ${formatTokens(m.remainingTokens)} ${t('fallback.remaining')}`}
             style={{
               width: `${m.widthPct}%`,
               backgroundColor: platformColors[m.platform] ?? '#94a3b8',
@@ -110,7 +112,7 @@ function TokenUsageBar({ data }: { data: TokenUsageData }) {
         ))}
         {totalUsed > 0 && (
           <div
-            title={`Used — ${formatTokens(totalUsed)}`}
+            title={`${t('fallback.used')} — ${formatTokens(totalUsed)}`}
             className="bg-muted-foreground/30"
             style={{ width: `${usedPct}%` }}
           />
@@ -143,6 +145,7 @@ function SortableModelRow({
   index: number
   onToggle: (modelDbId: number, enabled: boolean) => void
 }) {
+  const { t } = useTranslation()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: entry.modelDbId,
   })
@@ -162,7 +165,7 @@ function SortableModelRow({
         {...attributes}
         {...listeners}
         className="cursor-grab active:cursor-grabbing text-muted-foreground/50 hover:text-foreground transition-colors"
-        aria-label="Drag to reorder"
+        aria-label={t('fallback.dragLabel')}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
           <circle cx="9" cy="6" r="1.5" /><circle cx="15" cy="6" r="1.5" />
@@ -177,13 +180,13 @@ function SortableModelRow({
           <span className="text-xs text-muted-foreground">{entry.platform}</span>
           {entry.penalty > 0 && (
             <span className="text-xs text-amber-600 dark:text-amber-400">
-              −{entry.penalty} penalty
+              {t('fallback.penalty', { penalty: entry.penalty })}
             </span>
           )}
         </div>
         <div className="flex gap-3 mt-0.5 text-xs text-muted-foreground tabular-nums">
-          <span>Intel #{entry.intelligenceRank}</span>
-          <span>Speed #{entry.speedRank}</span>
+          <span>{t('fallback.intelRank', { rank: entry.intelligenceRank })}</span>
+          <span>{t('fallback.speedRank', { rank: entry.speedRank })}</span>
           {entry.rpmLimit && <span>{entry.rpmLimit} rpm</span>}
           {entry.rpdLimit && <span>{entry.rpdLimit} rpd</span>}
           <span>{entry.monthlyTokenBudget} tok/mo</span>
@@ -198,6 +201,7 @@ function SortableModelRow({
 }
 
 export default function FallbackPage() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [localEntries, setLocalEntries] = useState<FallbackEntry[] | null>(null)
 
@@ -275,18 +279,18 @@ export default function FallbackPage() {
   return (
     <div>
       <PageHeader
-        title="Fallback chain"
-        description="Drag to reorder. Requests try models top-to-bottom until one succeeds."
+        title={t('fallback.title')}
+        description={t('fallback.desc')}
         actions={
           <>
             <Button variant="outline" size="sm" onClick={() => sortMutation.mutate('intelligence')} disabled={sortMutation.isPending}>
-              Sort by intelligence
+              {t('fallback.sortByIntelligence')}
             </Button>
             <Button variant="outline" size="sm" onClick={() => sortMutation.mutate('speed')} disabled={sortMutation.isPending}>
-              Sort by speed
+              {t('fallback.sortBySpeed')}
             </Button>
             <Button variant="outline" size="sm" onClick={() => sortMutation.mutate('budget')} disabled={sortMutation.isPending}>
-              Sort by budget
+              {t('fallback.sortByBudget')}
             </Button>
           </>
         }
@@ -298,12 +302,14 @@ export default function FallbackPage() {
         )}
 
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
         ) : displayEntries.length === 0 ? (
           <div className="rounded-lg border border-dashed p-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              No models available. Add API keys on the <a href="/keys" className="underline text-foreground">Keys page</a> first.
-            </p>
+            <div className="text-sm text-muted-foreground">
+              <Trans i18nKey="fallback.noModels">
+                No models available. Add API keys on the <a href="/keys" className="underline text-foreground">Keys page</a> first.
+              </Trans>
+            </div>
           </div>
         ) : (
           <>
@@ -332,17 +338,17 @@ export default function FallbackPage() {
             {hasChanges && (
               <div className="flex justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => setLocalEntries(null)}>
-                  Discard
+                  {t('fallback.discard')}
                 </Button>
                 <Button size="sm" onClick={handleSave} disabled={saveMutation.isPending}>
-                  {saveMutation.isPending ? 'Saving…' : 'Save order'}
+                  {saveMutation.isPending ? t('fallback.saving') : t('fallback.saveOrder')}
                 </Button>
               </div>
             )}
 
             {unconfiguredPlatforms.length > 0 && (
               <p className="text-xs text-muted-foreground">
-                Hidden (no keys): {unconfiguredPlatforms.join(', ')}
+                {t('fallback.hiddenNoKeys', { platforms: unconfiguredPlatforms.join(', ') })}
               </p>
             )}
           </>

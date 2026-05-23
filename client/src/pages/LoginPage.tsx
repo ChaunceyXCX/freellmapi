@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -9,13 +10,15 @@ interface LoginPageProps {
 }
 
 export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
+  const { t } = useTranslation()
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!password) return
+    if (!username || !password) return
 
     setLoading(true)
     setError(null)
@@ -23,16 +26,16 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     try {
       const data = await apiFetch<{ success: boolean; token: string }>('/api/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ username, password }),
       })
       if (data.success && data.token) {
         localStorage.setItem('freellmapi_admin_token', data.token)
         onLoginSuccess(data.token)
       } else {
-        setError('Login failed')
+        setError(t('login.failed'))
       }
     } catch (err: any) {
-      setError(err.message || 'Incorrect password')
+      setError(err.message || t('login.incorrect'))
     } finally {
       setLoading(false)
     }
@@ -46,15 +49,27 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
             <span className="inline-block size-3 rounded-full bg-foreground" />
             <span className="font-bold tracking-tight text-xl">FreeLLMAPI</span>
           </div>
-          <h2 className="text-lg font-semibold leading-none tracking-tight">Admin Authentication</h2>
+          <h2 className="text-lg font-semibold leading-none tracking-tight">{t('login.title')}</h2>
           <p className="text-sm text-muted-foreground">
-            Enter your ADMIN_PASSWORD or unified API key to log in.
+            {t('login.desc')}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="username">{t('login.username')}</Label>
+            <Input
+              id="username"
+              type="text"
+              placeholder="admin"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoFocus
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">{t('login.password')}</Label>
             <Input
               id="password"
               type="password"
@@ -62,7 +77,6 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="font-mono"
-              autoFocus
             />
           </div>
 
@@ -72,8 +86,8 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
             </p>
           )}
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Authenticating…' : 'Log In'}
+          <Button type="submit" className="w-full" disabled={loading || !username || !password}>
+            {loading ? t('login.submitting') : t('login.submit')}
           </Button>
         </form>
       </div>

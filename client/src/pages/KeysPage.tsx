@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { apiFetch } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,14 +35,6 @@ const statusDot: Record<string, string> = {
   unknown: 'bg-muted-foreground/40',
 }
 
-const statusLabel: Record<string, string> = {
-  healthy: 'healthy',
-  rate_limited: 'rate-limited',
-  invalid: 'invalid',
-  error: 'error',
-  unknown: 'unchecked',
-}
-
 interface HealthPlatform {
   platform: string
   totalKeys: number
@@ -58,6 +51,7 @@ interface HealthData {
 }
 
 function UnifiedKeySection() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [showKey, setShowKey] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -88,9 +82,9 @@ function UnifiedKeySection() {
     <section className="rounded-lg border bg-card p-5">
       <div className="flex items-start justify-between gap-4 mb-3">
         <div>
-          <h2 className="text-sm font-medium">Your unified API key</h2>
+          <h2 className="text-sm font-medium">{t('keys.unifiedKeyTitle')}</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Use this as your OpenAI <code className="font-mono">api_key</code>; it authenticates requests to this proxy.
+            {t('keys.unifiedKeyDesc')}
           </p>
         </div>
         <Button
@@ -99,7 +93,7 @@ function UnifiedKeySection() {
           onClick={() => regenerate.mutate()}
           disabled={regenerate.isPending}
         >
-          Regenerate
+          {regenerate.isPending ? t('keys.checking') : t('keys.regenerate')}
         </Button>
       </div>
 
@@ -108,17 +102,17 @@ function UnifiedKeySection() {
           {showKey ? apiKey : masked}
         </code>
         <Button variant="outline" size="sm" onClick={() => setShowKey(!showKey)}>
-          {showKey ? 'Hide' : 'Show'}
+          {showKey ? t('keys.hide') : t('keys.show')}
         </Button>
         <Button variant="outline" size="sm" onClick={copy}>
-          {copied ? 'Copied' : 'Copy'}
+          {copied ? t('common.copied') : t('common.copy')}
         </Button>
       </div>
 
       <div className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-xs">
-        <span className="text-muted-foreground">Base URL</span>
+        <span className="text-muted-foreground">{t('keys.baseUrl')}</span>
         <code className="font-mono">{baseUrl}</code>
-        <span className="text-muted-foreground">Endpoint</span>
+        <span className="text-muted-foreground">{t('keys.endpoint')}</span>
         <code className="font-mono">/v1/chat/completions</code>
       </div>
     </section>
@@ -126,6 +120,7 @@ function UnifiedKeySection() {
 }
 
 export default function KeysPage() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [platform, setPlatform] = useState<Platform | ''>('')
   const [apiKey, setApiKey] = useState('')
@@ -199,15 +194,23 @@ export default function KeysPage() {
     keys: keys.filter(k => k.platform === p.value),
   })).filter(p => p.keys.length > 0)
 
+  const statusLabelKey: Record<string, string> = {
+    healthy: 'keys.healthy',
+    rate_limited: 'keys.rateLimited',
+    invalid: 'keys.invalid',
+    error: 'keys.error',
+    unknown: 'keys.unchecked',
+  }
+
   return (
     <div>
       <PageHeader
-        title="Keys"
-        description="Provider credentials and the unified API key your apps connect with."
+        title={t('keys.title')}
+        description={t('keys.desc')}
         actions={
           keys.length > 0 && (
             <Button variant="outline" size="sm" onClick={() => checkAll.mutate()} disabled={checkAll.isPending}>
-              {checkAll.isPending ? 'Checking…' : 'Check all'}
+              {checkAll.isPending ? t('keys.checking') : t('keys.checkAll')}
             </Button>
           )
         }
@@ -217,13 +220,13 @@ export default function KeysPage() {
         <UnifiedKeySection />
 
         <section>
-          <h2 className="text-sm font-medium mb-3">Add a provider key</h2>
+          <h2 className="text-sm font-medium mb-3">{t('keys.addKeyTitle')}</h2>
           <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3 rounded-lg border p-4 bg-card">
             <div className="space-y-1.5">
-              <Label className="text-xs">Platform</Label>
+              <Label className="text-xs">{t('keys.platform')}</Label>
               <Select value={platform} onValueChange={(v) => setPlatform(v as Platform)}>
                 <SelectTrigger className="w-[220px]">
-                  <SelectValue placeholder="Select provider" />
+                  <SelectValue placeholder={t('keys.selectProvider')} />
                 </SelectTrigger>
                 <SelectContent>
                   {PLATFORMS.map(p => (
@@ -234,7 +237,7 @@ export default function KeysPage() {
             </div>
             {needsAccountId && (
               <div className="space-y-1.5">
-                <Label className="text-xs">Account ID</Label>
+                <Label className="text-xs">{t('keys.accountId')}</Label>
                 <Input
                   value={accountId}
                   onChange={e => setAccountId(e.target.value)}
@@ -244,26 +247,26 @@ export default function KeysPage() {
               </div>
             )}
             <div className="space-y-1.5 flex-1 min-w-[240px]">
-              <Label className="text-xs">{needsAccountId ? 'API token' : 'API key'}</Label>
+              <Label className="text-xs">{needsAccountId ? t('keys.apiToken') : t('keys.apiKey')}</Label>
               <Input
                 type="password"
                 value={apiKey}
                 onChange={e => setApiKey(e.target.value)}
-                placeholder={needsAccountId ? 'Bearer token' : 'paste key here'}
+                placeholder={needsAccountId ? 'Bearer token' : t('keys.pasteKeyPlaceholder')}
                 className="font-mono text-xs"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Label</Label>
+              <Label className="text-xs">{t('keys.label')}</Label>
               <Input
                 value={label}
                 onChange={e => setLabel(e.target.value)}
-                placeholder="optional"
+                placeholder={t('common.optional')}
                 className="w-[160px]"
               />
             </div>
             <Button type="submit" size="sm" disabled={!platform || !apiKey || (needsAccountId && !accountId) || addKey.isPending}>
-              {addKey.isPending ? 'Adding…' : 'Add key'}
+              {addKey.isPending ? t('keys.addingKeyBtn') : t('keys.addKeyBtn')}
             </Button>
           </form>
           {addKey.isError && (
@@ -272,13 +275,13 @@ export default function KeysPage() {
         </section>
 
         <section>
-          <h2 className="text-sm font-medium mb-3">Configured providers</h2>
+          <h2 className="text-sm font-medium mb-3">{t('keys.configuredTitle')}</h2>
           {isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
+            <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
           ) : keys.length === 0 ? (
             <div className="rounded-lg border border-dashed p-8 text-center">
               <p className="text-sm text-muted-foreground">
-                No provider keys yet. Add one above to start routing.
+                {t('keys.noKeys')}
               </p>
             </div>
           ) : (
@@ -288,7 +291,7 @@ export default function KeysPage() {
                   <div className="flex items-baseline justify-between mb-2">
                     <h3 className="text-sm font-medium">{group.label}</h3>
                     <span className="text-xs text-muted-foreground tabular-nums">
-                      {group.keys.length} key{group.keys.length === 1 ? '' : 's'}
+                      {group.keys.length} {t('keys.keyUnit')}
                     </span>
                   </div>
                   <div className="rounded-lg border divide-y bg-card overflow-hidden">
@@ -301,7 +304,7 @@ export default function KeysPage() {
                           <span className={`size-1.5 rounded-full flex-shrink-0 ${statusDot[status] ?? statusDot.unknown}`} />
                           <code className="text-xs font-mono flex-shrink-0">{k.maskedKey}</code>
                           {k.label && <span className="text-xs text-muted-foreground">{k.label}</span>}
-                          <span className="text-xs text-muted-foreground">{statusLabel[status] ?? status}</span>
+                          <span className="text-xs text-muted-foreground">{t(statusLabelKey[status] || status)}</span>
                           <div className="flex-1" />
                           {lastChecked && (
                             <span className="text-[11px] text-muted-foreground tabular-nums">
@@ -309,10 +312,10 @@ export default function KeysPage() {
                             </span>
                           )}
                           <Button variant="ghost" size="xs" onClick={() => checkKey.mutate(k.id)} disabled={checkKey.isPending}>
-                            Check
+                            {t('keys.checkBtn')}
                           </Button>
                           <Button variant="ghost" size="xs" className="text-muted-foreground hover:text-destructive" onClick={() => deleteKey.mutate(k.id)} disabled={deleteKey.isPending}>
-                            Remove
+                            {t('keys.removeBtn')}
                           </Button>
                         </div>
                       )

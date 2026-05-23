@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, NavLink } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import KeysPage from '@/pages/KeysPage'
 import PlaygroundPage from '@/pages/PlaygroundPage'
@@ -25,6 +26,26 @@ function NavItem({ to, children }: { to: string; children: React.ReactNode }) {
     >
       {children}
     </NavLink>
+  )
+}
+
+function LanguageSwitcher() {
+  const { i18n } = useTranslation()
+
+  const handleLanguageChange = (value: string) => {
+    i18n.changeLanguage(value)
+    localStorage.setItem('freellmapi_language', value)
+  }
+
+  return (
+    <select
+      value={i18n.language.startsWith('zh') ? 'zh' : 'en'}
+      onChange={(e) => handleLanguageChange(e.target.value)}
+      className="text-xs bg-background border rounded-md px-2 py-1.5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring text-muted-foreground hover:text-foreground border-input transition-colors font-medium"
+    >
+      <option value="zh">中文</option>
+      <option value="en">English</option>
+    </select>
   )
 }
 
@@ -69,6 +90,7 @@ function Brand() {
 }
 
 function AppContent() {
+  const { t } = useTranslation()
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
 
   useEffect(() => {
@@ -99,7 +121,7 @@ function AppContent() {
   if (isAuthenticated === null) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-sm text-muted-foreground animate-pulse">Checking session…</p>
+        <p className="text-sm text-muted-foreground animate-pulse">{t('nav.checkingSession')}</p>
       </div>
     )
   }
@@ -110,7 +132,8 @@ function AppContent() {
         <header className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b">
           <div className="max-w-6xl mx-auto px-6 h-12 flex items-center">
             <Brand />
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex items-center gap-3">
+              <LanguageSwitcher />
               <DarkModeToggle />
             </div>
           </div>
@@ -128,12 +151,13 @@ function AppContent() {
         <div className="max-w-6xl mx-auto px-6 flex items-center">
           <Brand />
           <nav className="flex items-center gap-6 ml-10">
-            <NavItem to="/playground">Playground</NavItem>
-            <NavItem to="/keys">Keys</NavItem>
-            <NavItem to="/fallback">Fallback</NavItem>
-            <NavItem to="/analytics">Analytics</NavItem>
+            <NavItem to="/playground">{t('nav.playground')}</NavItem>
+            <NavItem to="/keys">{t('nav.keys')}</NavItem>
+            <NavItem to="/fallback">{t('nav.fallback')}</NavItem>
+            <NavItem to="/analytics">{t('nav.analytics')}</NavItem>
           </nav>
           <div className="ml-auto py-2 flex items-center gap-3">
+            <LanguageSwitcher />
             <DarkModeToggle />
             <Button
               variant="ghost"
@@ -141,7 +165,7 @@ function AppContent() {
               onClick={handleLogout}
               className="text-muted-foreground hover:text-foreground h-8 px-2"
             >
-              Logout
+              {t('nav.logout')}
             </Button>
           </div>
         </div>

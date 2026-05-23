@@ -9,13 +9,18 @@ function timingSafeStringEqual(provided: string, expected: string): boolean {
   return crypto.timingSafeEqual(compareA, b) && a.length === b.length;
 }
 
+export function getAdminUsername(): string {
+  return process.env.ADMIN_USERNAME || 'admin';
+}
+
 export function getAdminPassword(): string {
   return process.env.ADMIN_PASSWORD || getUnifiedApiKey();
 }
 
 export function getExpectedToken(): string {
+  const username = getAdminUsername();
   const password = getAdminPassword();
-  return crypto.createHash('sha256').update(password).digest('hex');
+  return crypto.createHash('sha256').update(`${username}:${password}`).digest('hex');
 }
 
 export function requireAdminAuth(req: Request, res: Response, next: NextFunction) {
